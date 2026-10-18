@@ -70,6 +70,13 @@ def check(spec):
                 problems.append(f"{host['name']} and {seen[address]} both use {address}")
             else:
                 seen[address] = host["name"]
+
+    known = set(spec["switches"]) | {h["name"] for h in spec["hosts"]}
+    for a, b in spec["links"]:
+        for name in (a, b):
+            if name not in known:
+                problems.append(f"link [{a}, {b}] names {name}, which doesn't exist")
+
     return problems
 
 
