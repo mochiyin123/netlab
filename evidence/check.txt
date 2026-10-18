@@ -1,4 +1,4 @@
-PROBLEM: h6 and h1 both use 10.58.0.1
-PROBLEM: h6 and h1 both use fd00:2158::1
-PROBLEM: link [h6, s9] names s9, which doesn't exist
+PROBLEM: off1 and srv1 both use 10.58.0.10
+PROBLEM: off1 and srv1 both use fd00:2158::10
+PROBLEM: link [off1, s9] names s9, which doesn't exist
 Fix the description and try again.
