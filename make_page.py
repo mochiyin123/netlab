@@ -27,7 +27,7 @@ from build_topo import check, check_mine, load
 # (id, file, title) for each piece of evidence. Save each file from your running network.
 EVIDENCE = [
     ("pingall", "evidence/pingall.txt", "pingall: every host reaches every other"),
-    ("neigh", "evidence/neigh.txt", "h1's neighbour table: ARP and Neighbour Discovery"),
+    ("neigh", "evidence/neigh.txt", "srv1's neighbour table: ARP and Neighbour Discovery"),
     ("macs", "evidence/macs.txt", "What a switch's data plane learned: brctl showmacs"),
     ("dad", "evidence/dad.txt", "A duplicate address: IPv6 notices, IPv4 doesn't"),
     ("check", "evidence/check.txt", "check() stopping bad data before it's built"),
@@ -58,26 +58,24 @@ def hosts_section(spec):
 
 
 def links_section(spec):
-    """TODO (assignment): return HTML listing every link in spec["links"].
-
-    For example, for links [h1, s1] and [s1, s2] return:
-        <ul><li>h1 — s1</li><li>s1 — s2</li></ul>
-    Use esc() on every name, as hosts_section() does.
-    """
-    return "<p>TODO: list the links.</p>"
+    """HTML list of every link in spec["links"]."""
+    items = "".join(f"<li>{esc(a)} — {esc(b)}</li>" for a, b in spec["links"])
+    return f"<ul>{items}</ul>"
 
 
 def mermaid_diagram(spec):
-    """TODO (assignment): return Mermaid text that draws the network, built from spec["links"].
+    """Mermaid text: one line per link, with each host's IPv4 shown in its box."""
+    ips = {h["name"]: h["ip"].split("/")[0] for h in spec["hosts"]}
 
-    Mermaid turns text like this into a diagram in the browser:
-        graph LR
-          h1 --- s1
-          s1 --- s2
-    Start with "graph LR", then add one line per link. For extra credit, show each host's
-    IPv4 address in its box, e.g.  h1["h1<br>10.NN.0.1"] --- s1
-    """
-    return "graph LR\n  todo[Diagram not generated yet]"
+    def node(name):
+        if name in ips:  # a host: show its IPv4 address
+            return f'{name}["{name}<br>{ips[name]}"]'
+        return name  # a switch
+
+    lines = ["graph LR"]
+    for a, b in spec["links"]:
+        lines.append(f"  {node(a)} --- {node(b)}")
+    return "\n".join(lines)
 
 
 def evidence_section(ev_id, path, title):
