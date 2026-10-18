@@ -1,0 +1,8 @@
+*** Ping: testing ping reachability
+srv1 -> srv2 lab1 lab2 lab3 off1
+srv2 -> srv1 lab1 lab2 lab3 off1
+lab1 -> srv1 srv2 lab2 lab3 off1
+lab2 -> srv1 srv2 lab1 lab3 off1
+lab3 -> srv1 srv2 lab1 lab2 off1
+off1 -> srv1 srv2 lab1 lab2 lab3
+*** Results: 0% dropped (30/30 received)
