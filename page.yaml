@@ -3,27 +3,50 @@
 # leave a blank line between paragraphs. Refer to YOUR network and YOUR evidence.
 # Never put your name or full student ID here: the page is public.
 
-repository: https://github.com/YOUR-USERNAME/YOUR-REPOSITORY
+repository: https://github.com/mochiyin123/netlab
 
 answers:
   planes:
     question: "Where are the data, control and management planes in your network?"
-    answer: ""
+    answer: |
+      Data plane: the switches s1, s2 and s3, which forward the actual frames between hosts.
+
+      Control plane: there is no external controller (built with controller=None). Each switch makes its own forwarding decisions by learning MAC addresses.
+
+      Management plane: topology.yaml and build_topo.py, which is where we define and change the network.
   learning:
     question: "How did your switches learn which port leads to each host? Use your MAC table evidence."
-    answer: ""
+    answer: |
+      In the MAC table of s1, srv1 (00:00:00:00:00:01) was learned on port 1, srv2 (00:00:00:00:00:02) on port 2, lab1, lab2 and lab3 (00:00:00:00:00:03/04/05) on port 3, and off1 (00:00:00:00:00:06) on port 4.
+
+      The entries marked "no" in the "is local?" column are learned dynamically, while "yes" entries are the MAC addresses of the switch's own ports. The switch builds this table by itself by reading the source MAC address of incoming frames, then uses it to forward frames out of the correct port. Nobody configured it; it filled in when we ran pingall.
   kind:
     question: "Which of the four kinds of programmability is this assignment (a network described as data, then built and documented by scripts)? Why isn't it any of the other three?"
-    answer: ""
+    answer: |
+      It is automated configuration management, because it changes how configuration is produced and applied. topology.yaml is our source of truth, check() validates it, build_topo.py and make_page.py generate the network and this page from it, and Git tracks and lets me review every change.
+
+      It is not a programmable data plane, because we never changed which headers the switches understand or how they process packets. It is not an externalised control plane, because we built with controller=None, so no external controller makes decisions and each switch learns MACs by itself. It is not a programmatic device interface, because the YAML only describes the network. We never talk to a device through an API such as NETCONF.
   two_am:
     question: "Week 1's 2 a.m. change on 40 switches: what would be different if those switches were described like your network?"
-    answer: ""
+    answer: |
+      The change would be one edit to the data file, and a script would apply it to all 40 switches instead of 40 separate logins. There would be one chance to make a typo instead of 40, and every switch would get exactly the same result.
+
+      The risk is that a mistake in the file reaches all 40 switches at once. That is why check() matters. Like check.txt, which stops duplicate addresses and links to missing nodes before anything is built, it can catch bad data before it is pushed.
   model:
     question: "What's the difference between your network's data model and its serialisation? Use YAML and JSON as the example."
-    answer: ""
+    answer: |
+      The data model is the structure that describes our network: a list of switches (s1, s2, s3), a list of hosts with their IPv4 and IPv6 addresses, and the links that join them. The serialisation is the way that structure is written into a file. YAML and JSON are two different serialisations of the same data model.
+
+      In the lab we converted topology.yaml to topology.json and built the network from both. They gave the same network, which shows the data model did not change, only the notation did. YAML uses indentation and dashes, while JSON uses braces, brackets, quotes and commas. The only thing lost was the comments, because JSON has no comment syntax.
   check:
     question: "Why is it better to catch bad data in check() than with pingall? What did IPv6 notice about a duplicate address that IPv4 didn't?"
-    answer: ""
+    answer: |
+      check() catches the problem before the network exists, with a message naming the hosts and the address. pingall runs after the network is built and it hid the problem: in the lab, when two hosts shared an address, pingall reported only 1 failure out of 12, so the network looked almost healthy.
+
+      IPv6 has Duplicate Address Detection, so before a host uses a new address it asks the network whether anyone already has it. In dad.txt, srv2's copy of fd00:2158::10 is marked dadfailed and is not used. IPv4 has no such check, and it accepted 10.58.0.10 on srv2 silently as a secondary address.
   git:
     question: "What does your Git history give you that copying files into folders named topology-v2-final wouldn't?"
-    answer: ""
+    answer: |
+      Git shows precisely which lines changed, and every commit has a message such as "Add s2 and h4" that says what changed and why. With folders we would have to open two files and compare them by eye, and names like v2-final don't say what changed or why.
+
+      Git also lets us go back to an earlier commit if a change breaks something, and pushing to GitHub keeps a backup.
