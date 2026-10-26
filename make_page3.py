@@ -52,21 +52,46 @@ def links_section(spec):
 
 
 def routing_tables_section(spec):
-    """TODO (assignment): return HTML showing each router's routing table, as the router sees it.
+    """Generate each router's routing table, longest prefix first."""
+    sections = []
+    addresses = plan(spec)
 
-    For each router in spec["routers"], list:
-      - its directly connected networks: plan(spec)[router] gives its interfaces;
-        each one's .network is a connected network
-      - its static routes: spec["routes"].get(router), each with "to" and "via"
-    sorted longest prefix first (the order in which longest-prefix match prefers them).
-    Show each entry's destination and where it goes ("directly connected", or the next hop).
-    For example, one table per router:
-        <h3>r1</h3><table><tr><th>Destination</th><th>Next hop</th></tr>
-        <tr><td>10.7.12.0/30</td><td>directly connected</td></tr> ...</table>
-    Use esc() on every value.
-    """
-    return "<p>TODO: show each router's routing table.</p>"
+    for router in spec["routers"]:
+        entries = []
 
+        # Add directly connected networks.
+        for interface in addresses[router]:
+            entries.append(
+                (interface.network, "directly connected")
+            )
+
+        # Add static routes from network.yaml.
+        for route in (spec.get("routes") or {}).get(router, []) or []:
+            destination = ipaddress.ip_network(route["to"])
+            next_hop = route["via"]
+            entries.append((destination, next_hop))
+
+        # Longest-prefix match: /30 before /24 before /23.
+        entries.sort(key=lambda entry: entry[0].prefixlen, reverse=True)
+
+        # Generate an HTML table for this router.
+        rows = ""
+        for destination, next_hop in entries:
+            rows += (
+                f"<tr><td><code>{esc(destination)}</code></td>"
+                f"<td>{esc(next_hop)}</td></tr>"
+            )
+
+        sections.append(
+            f"<h3>{esc(router)}</h3>"
+            "<table>"
+            "<thead><tr><th>Destination</th>"
+            "<th>Next hop</th></tr></thead>"
+            f"<tbody>{rows}</tbody>"
+            "</table>"
+        )
+
+    return "\n".join(sections)
 
 def mermaid_diagram(spec):
     lines = ["graph LR"]
